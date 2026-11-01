@@ -5,7 +5,7 @@ Read when: Building the image or starting an instance with this model.
 
 Status: experimental; hardware and end-to-end verification are in progress.
 
-- The image uses Vast's CUDA 13.2 mini base, preserves its boot and SSH services, and starts Strata under supervisord.
+- The image uses Vast's CUDA 13.2 mini base and starts Strata under supervisord. Vast SSH launch mode replaces the image entrypoint; use `vast.py rent ... --strata` so the on-start command launches `/opt/instance-tools/bin/entrypoint.sh` and fixes SSH authorized-key permissions.
 - The build targets NVIDIA `sm_75`, `sm_80`, `sm_86`, `sm_89`, and `sm_120`; the host CPU needs AVX2. A sufficiently recent NVIDIA driver is required. Compatibility and performance must be checked per host.
 - The 120 GiB Qwen model is not included. Mount its volume at `/models` or `/data`; that directory or one direct child containing `pack/index.txt` is detected. `MODEL_DIR` overrides the search roots. Startup checks every model file's expected size; this is not a cryptographic integrity check.
 - Vision is optional and requires a separately supplied Qwen vision projector; place it at `/models/mmproj-Qwen3.8-Flash-Next-BF16.gguf` or set `MMPROJ` to its path. Image input has not been validated here.

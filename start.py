@@ -58,7 +58,20 @@ def effective_memory():
     return min(limits)
 
 
+def secure_ssh_key(path=Path('/root/.ssh/authorized_keys')):
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    except FileNotFoundError:
+        return
+    try:
+        os.fchown(fd, 0, 0)
+        os.fchmod(fd, 0o600)
+    finally:
+        os.close(fd)
+
+
 def main():
+    secure_ssh_key()
     check_hardware()
     if os.environ.get('STRATA_SMOKE') == '1':
         subprocess.run([str(ROOT / 'engine/strata'), '--help'], check=True)

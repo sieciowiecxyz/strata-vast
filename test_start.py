@@ -34,6 +34,19 @@ class StartupTests(unittest.TestCase):
              patch.object(Path, 'read_text', side_effect=['68719476736', FileNotFoundError()]):
             self.assertEqual(start.effective_memory(), 64 * 1024**3)
 
+    def test_ssh_key_permissions_and_symlinks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            key = Path(directory) / 'authorized_keys'
+            key.write_text('public key')
+            key.chmod(0o666)
+            with patch.object(start.os, 'fchown'):
+                start.secure_ssh_key(key)
+            self.assertEqual(key.stat().st_mode & 0o777, 0o600)
+            link = Path(directory) / 'link'
+            link.symlink_to(key)
+            with self.assertRaises(OSError):
+                start.secure_ssh_key(link)
+
     def test_discovers_volume_and_rejects_missing_or_partial_data(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -42,7 +55,8 @@ class StartupTests(unittest.TestCase):
             model = root / 'qwen'
             (model / 'pack').mkdir(parents=True)
             (model / 'pack/index.txt').write_bytes(b'x')
-            with patch.dict('os.environ', {'MODEL_DIR': str(root)}, clear=True), patch.object(start, 'check_hardware'):
+            with patch.dict('os.environ', {'MODEL_DIR': str(root)}, clear=True), \
+                 patch.object(start, 'check_hardware'), patch.object(start, 'secure_ssh_key'):
                 with self.assertRaisesRegex(ValueError, 'incomplete model'):
                     start.main()
             (model / 'pack/index.txt').write_bytes(b'abc')
