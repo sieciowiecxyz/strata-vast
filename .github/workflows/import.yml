@@ -1,0 +1,19 @@
+name: Import verified image
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/import.yml]
+permissions:
+  contents: read
+  packages: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - run: |
+          command -v skopeo >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq skopeo)
+          printf '%s' "$GH_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          skopeo copy docker://ttl.sh/strata-vast-a20ec367-e566-40cf-b061-d8a70cac85c8@sha256:d9fe7420c0ad3bf2aeee68dfc5f31cbd888db0f40f2a596e3d1e9b5a886fd510 docker://ghcr.io/${{ github.repository }}:latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

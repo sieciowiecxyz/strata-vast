@@ -114,7 +114,8 @@ def main():
     config.write_text(json.dumps(cfg))
     print(f'Using model {root}; API on 127.0.0.1:8080', flush=True)
     os.execv(str(ROOT / '.venv/bin/python'), [str(ROOT / '.venv/bin/python'),
-             str(ROOT / 'serve/server.py'), '--engine', 'strata', '--config', str(config)])
+             str(ROOT / 'serve/server.py'), '--engine', 'strata', '--config', str(config),
+             '--host', '127.0.0.1', '--port', '8080'])
 
 
 if __name__ == '__main__':
